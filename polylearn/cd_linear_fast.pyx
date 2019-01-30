@@ -24,7 +24,7 @@ cpdef double _cd_linear_epoch(double[:] w,
 
     cdef Py_ssize_t i, j, ii
     cdef double sum_viol = 0
-    cdef Py_ssize_t n_features = w.shape[0]
+    cdef Py_ssize_t n_features = w.shape[0] - 1
     cdef double update
     cdef double inv_step_size
 
@@ -33,6 +33,19 @@ cpdef double _cd_linear_epoch(double[:] w,
     cdef int* indices
     cdef int n_nz
 
+    update = alpha * w[0]
+    for i in range(X.n_samples):
+        update += loss.dloss(y_pred[i], y[i]) * 1.0
+        
+    inv_step_size = loss.mu * X.n_samples + alpha
+    update /= inv_step_size
+    
+    w[0] -= update
+    sum_viol += fabs(update)
+    
+    for i in range(X.n_samples):
+        y_pred[i] -= update * 1.0
+    
     for j in range(n_features):
         X.get_column_ptr(j, &indices, &data, &n_nz)
 
