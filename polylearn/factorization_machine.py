@@ -85,7 +85,7 @@ class _BaseFactorizationMachine(six.with_metaclass(ABCMeta, _BasePoly)):
         loss_obj = self._get_loss(self.loss)
 
         if not (self.warm_start and hasattr(self, 'w_')):
-            self.w_ = np.zeros(n_features, dtype=np.double)
+            self.w_ = np.zeros(n_features + 1, dtype=np.double)
 
         if self.fit_lower == 'explicit':
             n_orders = self.degree - 1
@@ -122,7 +122,8 @@ class _BaseFactorizationMachine(six.with_metaclass(ABCMeta, _BasePoly)):
                                degree=self.degree)
 
         if self.fit_linear:
-            y_pred += safe_sparse_dot(X, self.w_)
+            y_pred += self.w_[0]
+            y_pred += safe_sparse_dot(X, self.w_[1:])
 
         if self.fit_lower == 'explicit' and self.degree == 3:
             # degree cannot currently be > 3
